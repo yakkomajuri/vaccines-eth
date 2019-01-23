@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Document</title>
+</head>
+
+<body>
+
+	<style>
+		.table {
+			max-width: 1100px !important;
+			align-self: center;
+			margin-left: 9%;
+		}
+
+		.body {
+			align-content: center !important;
+		}
+
+		h1 {
+			text-align: center;
+		}
+
+		@media screen and (max-width:959px) {
+			.table {
+				margin-left: 0% !important;
+			}
+		}
+	</style>
+	<br>
+	<br>
+	<h1>
+		Yakko's Vaccines
+	</h1>
+	<br>
+	<br>
+	<table class="table table-hover" id="table1">
+		<thead>
+			<tr>
+				<th scope="col">Date</th>
+				<th scope="col">Name</th>
+				<th scope="col">#</th>
+				<th scope="col">Info</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<th scope="row"></th>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+	
+		</tbody>
+	</table>
+
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+	 crossorigin="anonymous">
+	<script src="http://rawgit.com/ethereum/web3.js/0.16.0/dist/web3.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/ethjs@0.3.0/dist/ethjs.min.js"></script>
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+	 crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+	 crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+	 crossorigin="anonymous"></script>
+	<script>
+/*
+		if (typeof web3 !== 'undefined') {
+			web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:7545"));
+		} else {
+			// set the provider you want from Web3.providers
+			web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:7545"));
+		}
+
+*/
+
+if (typeof web3 !== 'undefined') {
+            web3 = new Web3(web3.currentProvider);
+        } else {
+            // set the provider you want from Web3.providers
+            web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/v3/d81a3501521247ce9a510f4e8317219b"));
+        }
+
+		web3.eth.defaultAccount = web3.eth.accounts[0];
+
+		var VaccineRegistrationContract = web3.eth.contract([
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_index",
+				"type": "uint256"
+			}
+		],
+		"name": "getData",
+		"outputs": [
+			{
+				"name": "_data",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "dataLength",
+		"outputs": [
+			{
+				"name": "_length",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_data",
+				"type": "string"
+			}
+		],
+		"name": "registerData",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"name": "_secondary",
+				"type": "address"
+			},
+			{
+				"name": "_tertiary",
+				"type": "address"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	}
+]);
+
+
+		var VaccineRegistration = VaccineRegistrationContract.at('0x7694D59dAB859598bfD16342Df6E5C28bFB8843d');
+		console.log(VaccineRegistration);
+
+		var list = [];
+		var myData = "";
+		var length;
+		var x = 0;
+
+		function pullData(index) {
+			if (x == length) {
+				sortData(myData);
+			}
+			else {
+				VaccineRegistration.getData(index, (error, data) => {
+					myData += String(data);
+					console.log(myData);
+					x++;
+					pullData(x);
+				});
+			}
+		}
+
+		function length() {
+			VaccineRegistration.dataLength((error, data) => {
+				length = data.toNumber();
+			});
+			pullData(x);
+		}
+
+		function sortData(data) {
+			var item = "";
+			for (var i = 0; i < myData.length; i++) {
+				if (data[i] == "|") {
+					list.push(item);
+					item = "";
+				}
+				else {
+					item += data[i];
+				}
+			}
+			console.log(list);
+			iterate();
+		}
+
+		var a = 0;
+
+		function iterate() {
+			var row = "";
+			if (list.length - 1 < a) {
+				a = 0;
+				row = "";
+				return "done";
+			}
+			else {
+				row = list[a];
+				console.log(row);
+				createTable(row);
+			}
+		}
+
+		function createTable(data) {
+			var table = document.getElementById("table1");
+			var row = table.insertRow(1);
+			var cell0 = row.insertCell(0);
+			var cell1 = row.insertCell(1);
+			var cell2 = row.insertCell(2);
+			var cell3 = row.insertCell(3);
+			var y = 0;
+			var cell = "";
+			for (var i = 0; i <= data.length; i++) {
+				if (data[i] == "," && y == 0) {
+					cell0.innerHTML = cell;
+					cell = "";
+					y++;
+				}
+				else if (data[i] == "," && y == 1) {
+					cell1.innerHTML = cell;
+					cell = "";
+					y++;
+				}
+				else if (data[i] == "," && y == 2) {
+					console.log("cell2 " + cell);
+					cell2.innerHTML = cell;
+					cell = "";
+					y++;
+				}
+				else if (data[i-1] != "," && data[i] == " " && y == 3) {
+					cell3.innerHTML = cell;
+					cell = "";
+					y = 0;
+					a++;
+					iterate();
+				}
+				else {
+					cell += data[i];
+				}
+			}
+		}
+
+		length();
+
+/*
+
+		function createTable() {
+			var row = "";
+			var cell = "";
+			var x = 0;
+			var table = document.getElementById("table1");
+			var row = table.insertRow(1);
+			var cell0 = row.insertCell(0);
+			var cell1 = row.insertCell(1);
+			var cell2 = row.insertCell(2);
+			var cell3 = row.insertCell(3);
+			var cellInfo;
+			for (var i = 0; i < list.length; i++) {
+				row = list[i];
+				for (var j; j < row.length; j++) {
+					if (row[j] == "," && x <= 3) {
+						(String("cell" + String(x))).innerHTML = cell;
+						cell = "";
+						x++;
+					}
+					else if (row[j] == "," && x == 4) {
+						(String("cell" + String(x))).innerHTML = cell;
+						cell = "";
+						x = 0;
+					}
+					else {
+						cell += row[j];
+					}
+				}
+			}
+		}
+
+		length();
+*/
+
+/*
+
+	cell0.innerHTML = "NEW CELL1";
+			cell1.innerHTML = "NEW CELL2";
+			cell2.innerHTML = "NEW CELL3";
+			cell3.innerHTML = "NEW CELL4";
+			
+https://www.w3schools.com/jsref/jsref_obj_array.asp
+https://www.w3schools.com/jsref/met_table_insertrow.asp
+    function iterate() {
+        var l = length;
+       for (var i = 0; i <= length; i++) {
+        pullData(i);
+       }
+    }
+*/
+
+        /* const display = async () => {
+            var data = await app.getData("0");
+            for (let i = 0; i <= data.length; i++) {
+                if (data[i] == "," || i == data.length) {
+                    console.log(x);
+                   x = "";
+                    i++;
+                }
+                x += data[i];
+            }
+        } */
+
+	</script>
+
+</body>
+
+</html>
